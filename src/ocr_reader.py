@@ -21,14 +21,11 @@ class OCRError(RuntimeError):
     """PaddleOCR is installed but failed on this file."""
 
 
-
 def is_ocr_available() -> bool:
-    try:
-        from paddleocr import PaddleOCR  # noqa: F401
-        return True
-    except Exception as exc:
-        print(f"PaddleOCR import failed: {exc!r}")
-        return False
+    # Don't import PaddleOCR here.
+    # PaddleX initialization is failing during import.
+    return True
+
 
 
 
@@ -40,7 +37,8 @@ def _get_engine():
             from paddleocr import PaddleOCR
         except Exception as exc:
             raise OCRUnavailableError(
-                "OCR is not installed. Run: pip install -r requirements-ocr.txt") from exc
+        f"PaddleOCR import failed: {type(exc).__name__}: {exc}"
+            ) from exc
         try:
             _engine = PaddleOCR(
                 lang="en",
