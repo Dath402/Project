@@ -23,17 +23,25 @@ class OCRError(RuntimeError):
 
 
 
-
 def is_ocr_available() -> bool:
+    paths = [
+        "/usr/lib/x86_64-linux-gnu/libGL.so.1",
+        "/lib/x86_64-linux-gnu/libGL.so.1",
+    ]
+
+    print("OCR DEBUG - GL lookup:", ctypes.util.find_library("GL"))
+    for path in paths:
+        print(f"OCR DEBUG - {path}: {os.path.exists(path)}")
+
     try:
-        from paddleocr import PaddleOCR  # noqa: F401
+        from paddleocr import PaddleOCR
         return True
     except Exception as exc:
-        print(f"PaddleOCR availability check failed: {type(exc).__name__}: {exc}")
+        print(
+            f"OCR DEBUG - import failed: "
+            f"{type(exc).__name__}: {exc}"
+        )
         return False
-
-
-
 
 
 def _get_engine():
