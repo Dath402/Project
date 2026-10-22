@@ -6,6 +6,7 @@ use_doc_orientation_classify=..., use_doc_unwarping=..., lang=...) and
 engine.predict(path) -> list of results holding 'rec_texts' and 'rec_boxes'/'rec_polys'.
 """
 import os
+import ctypes.util
 import statistics
 import tempfile
 
