@@ -38,11 +38,12 @@ def _get_engine():
     global _engine
     if _engine is None:
         try:
-            from paddleocr import PaddleOCR
+            from paddleocr import PaddleOCR  
         except Exception as exc:
-            raise OCRUnavailableError(
-        f"PaddleOCR import failed: {type(exc).__name__}: {exc}"
+            raise OCRError(
+                f"PaddleOCR import failed: {type(exc).__name__}: {exc}"
             ) from exc
+
         try:
             _engine = PaddleOCR(
                 lang="en",
