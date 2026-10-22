@@ -22,13 +22,15 @@ class OCRError(RuntimeError):
 
 
 
+
 def is_ocr_available() -> bool:
     try:
         from paddleocr import PaddleOCR  # noqa: F401
         return True
     except Exception as exc:
-        print(f"PaddleOCR import failed: {exc!r}")
+        print(f"PaddleOCR availability check failed: {type(exc).__name__}: {exc}")
         return False
+
 
 
 
