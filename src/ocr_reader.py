@@ -21,10 +21,14 @@ class OCRError(RuntimeError):
     """PaddleOCR is installed but failed on this file."""
 
 
+
 def is_ocr_available() -> bool:
-    # Don't import PaddleOCR here.
-    # PaddleX initialization is failing during import.
-    return True
+    try:
+        from paddleocr import PaddleOCR  # noqa: F401
+        return True
+    except Exception as exc:
+        print(f"PaddleOCR import failed: {exc!r}")
+        return False
 
 
 
