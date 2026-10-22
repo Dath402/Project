@@ -22,50 +22,50 @@ class OCRError(RuntimeError):
     """PaddleOCR is installed but failed on this file."""
 
 
+_paddle_cls = None
+_paddle_error: str | None = None
 
-def is_ocr_available() -> bool:
-    paths = [
-        "/usr/lib/x86_64-linux-gnu/libGL.so.1",
-        "/lib/x86_64-linux-gnu/libGL.so.1",
-    ]
 
-    print("OCR DEBUG - GL lookup:", ctypes.util.find_library("GL"))
-    for path in paths:
-        print(f"OCR DEBUG - {path}: {os.path.exists(path)}")
-
+def _load_paddle():
+    """Import PaddleOCR once. A failed import is remembered, never retried
+    (retrying causes the misleading 'PDX has already been initialized' error)."""
+    global _paddle_cls, _paddle_error
+    if _paddle_cls is not None:
+        return _paddle_cls
+    if _paddle_error is not None:
+        raise OCRError(_paddle_error)
     try:
         from paddleocr import PaddleOCR
-        return True
     except Exception as exc:
-        print(
-            f"OCR DEBUG - import failed: "
-            f"{type(exc).__name__}: {exc}"
-        )
+        _paddle_error = f"PaddleOCR import failed: {type(exc).__name__}: {exc}"
+        print("OCR DEBUG -", _paddle_error)
+        raise OCRError(_paddle_error) from exc
+    _paddle_cls = PaddleOCR
+    return _paddle_cls
+
+
+def is_ocr_available() -> bool:
+    try:
+        _load_paddle()
+        return True
+    except OCRError:
         return False
 
 
 def _get_engine():
-    """Create the OCR engine once (loading models is slow)."""
     global _engine
     if _engine is None:
-        try:
-            from paddleocr import PaddleOCR  
-        except Exception as exc:
-            raise OCRError(
-                f"PaddleOCR import failed: {type(exc).__name__}: {exc}"
-            ) from exc
-
+        PaddleOCR = _load_paddle()
         try:
             _engine = PaddleOCR(
                 lang="en",
                 use_textline_orientation=True,
-                use_doc_orientation_classify=False,   # faster and fewer model downloads
+                use_doc_orientation_classify=False,
                 use_doc_unwarping=False,
             )
         except Exception as exc:
             raise OCRError(f"Could not start PaddleOCR: {exc}") from exc
     return _engine
-
 
 def boxes_to_text(texts: list[str], boxes: list) -> str:
     """Rebuild text lines from OCR boxes so table columns stay on one line.
